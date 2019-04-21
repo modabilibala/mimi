@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fosu.dao.student.StudentMapper">
+	
+<!-- 查询班级的学生 通过班级id -->
+<select id="findStudentByGradeId" parameterType="Integer" resultType="com.fosu.vo.StudentAndGrade">
+	SELECT 
+  g.`grade_period`,
+  g.`grade_specialty`,
+  g.`grade_class`,
+  s.`student_id`,
+  s.`for_student_grade_id`,
+  s.`student_name`,
+  s.`student_number`,
+  s.`student_gender`,
+  s.`student_phone`
+	FROM
+	student s,grade g
+	WHERE g.grade_id = #{grade_id}
+</select>
+<!-- 修改学生信息   name nikiname gender phone-->
+
+<update id="StudentInfo" parameterType="com.fosu.pojo.Student" >
+	update student
+	set
+	  `student_name` = #{student_name},
+	  `student_nikiname` = #{student_nikiname},
+	  `student_gender` = #{student_gender},
+	  `student_phone` = #{student_phone}
+	WHERE
+	`student_id` = #{student_id} ;
+</update>
+
+<resultMap id="studentBaseInfo" type="com.fosu.vo.student.StudentBaseAndGrade">
+	<association property="student" javaType="com.fosu.pojo.Student">
+		<id property="student_id" column="student_id"/>
+		<result property="student_name" column="student_name"/>
+		<result property="student_nikiname" column="student_nikiname"/>
+		<result property="student_username" column="student_username"/>	
+		<result property="student_number" column="student_number"/>
+		<result property="student_gender" column="student_gender"/>
+		<result property="student_phone" column="student_phone"/>	
+	</association>
+	<association property="grade" javaType="com.fosu.pojo.Grade">
+		<id property="grade_id" column="grade_id"/>
+		<result property="grade_period" column="grade_period"/>
+		<result property="grade_specialty" column="grade_specialty"/>
+		<result property="grade_class" column="grade_class"/>	
+	</association>
+</resultMap>
+<!--查看学生基本信息-->
+<select id="findStudentInfo" resultMap="studentBaseInfo" parameterType="Integer">
+	select
+	student_name,
+	student_nikiname,
+	student_username,
+	student_number,
+	student_gender,
+	student_phone,
+	grade_period,
+	grade_specialty,
+	grade_class
+	from student,grade
+	where 
+	for_student_grade_id = grade_id
+	and
+	student_id = #{StudentBaseAndGrade.student_id}
+</select>
+
+<!--	学生登录功能  -->
+<select id="findStudentLogin" parameterType="java.util.Map" resultType="com.fosu.vo.student.StudentLogin">
+	select
+	student_id,
+	student_username,
+	student_password,
+	student_name
+	from student
+	where  student_username=#{student_username}
+</select>
+
+<!--学生注册功能-->
+<insert id="insertStudentRegister" parameterType="java.util.Map" useGeneratedKeys="true" keyProperty="student_id">
+	INSERT INTO `student`(
+  `student_username`,
+  `student_password`,
+  `student_number`,
+  `for_student_grade_id`
+	 )
+	VALUES
+  (
+    #{student_username},
+    #{student_password},
+	#{student_number},
+	#{for_student_grade_id}
+  ) ;
+</insert>
+
+<!-- 根据用户名查询信息-->
+<select id="findStudentByUsername" parameterType="java.lang.String" resultType="java.util.Map">
+	select
+	student_id,
+	student_username,
+	student_password,
+	student_name
+	from student
+	where  student_username=#{student_username}
+	
+</select>
+
+</mapper>

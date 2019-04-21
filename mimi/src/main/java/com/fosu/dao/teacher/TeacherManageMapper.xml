@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fosu.dao.teacher.TeacherManageMapper">
+<!--增加Teacher 用户-->
+<insert id="insertTeacher" parameterType="com.fosu.pojo.Teacher" useGeneratedKeys="true" keyProperty="teacher_id">
+	INSERT INTO `teacher`(
+	`teacher_username`,
+	`teacher_password`,
+	`teacher_name`
+	)
+	VALUES
+	(
+	#{teacher_username},
+	#{teacher_password},
+	#{teacher_name}
+	);
+
+</insert>
+<!--查询老师用户-->
+<select id="findTeacher" parameterType="String" resultType="Integer">
+	SELECT
+	teacher_id
+FROM
+	teacher
+WHERE	teacher_username = #{teacher_username};
+</select>
+<!-- 中间表 批量关系 -->
+<insert id="insertTeacher_grade" parameterType="map" >
+	insert INTO `Teacher_grade`(
+	`for_teacher_id`,
+	`for_grade_id`)
+	VALUES
+	<foreach collection="for_grade_id" item="gID" separator=",">
+		(${for_teacher_id},#{gID})
+	</foreach>
+</insert>
+<!-- 查询 老师关联 年级 -->
+<resultMap id="Teacher_Grade" type="com.fosu.vo.TeacherAndGrade">
+	<id  property="teacher_id" column="teacher_id"/>
+	<result property="teacher_name" column="teacher_name"/>
+	<collection property="grade"  ofType="com.fosu.pojo.Grade">
+		<id property="grade_id" column="grade_id"/>
+		<result property="grade_period" column="grade_period"/>
+		<result property="grade_specialty" column="grade_specialty"/>
+		<result property="grade_class" column="grade_class"/>
+	</collection>
+</resultMap>
+
+<select id="findTeacherAndGrade" parameterType="Integer" resultMap="Teacher_Grade">
+	SELECT 
+		t.`teacher_id`,
+		t.`teacher_name`,
+		g.`grade_id`,
+		g.`grade_class`,
+		g.`grade_period`,
+		g.`grade_specialty`
+		
+		FROM teacher t
+		LEFT JOIN teacher_grade tg ON  t.teacher_id = tg.for_teacher_id
+		LEFT JOIN grade g ON tg.for_grade_id = g.grade_id
+		WHERE t.teacher_id=#{teacher_id}
+</select>
+
+	<!--通过老师ID查所有信息-->
+<select id="findTeacher_id" parameterType="Integer" resultType="com.fosu.pojo.Teacher">
+	SELECT
+	*
+	FROM teacher
+	WHERE teacher_id = #{teacher_id}
+</select>
+	<!--通过老师主键查询老师所带班级-->
+<select id="findTeacherGrade_tId" parameterType="Integer" resultType="com.fosu.pojo.Grade">
+	SELECT 
+	`grade_id`,
+	`grade_period`,
+	`grade_specialty`,
+	`grade_class`
+		FROM grade,teacher_grade
+	WHERE for_grade_id = grade_id and for_teacher_id = #{teacher_id}
+</select>
+
+
+<!--搜索班级 id 得相关学生信息集合-->
+<resultMap id="ClassStatus" type="com.fosu.vo.GradeStudentQueryVo">
+	<id property="student_id" column="student_id"/>
+	<result property="student_name" column="student_name"/>
+	<result property="student_number" column="student_number"/>
+	<collection property="ExamPaper" ofType="com.fosu.vo.ExamPaperLink">
+		<association property="exam" javaType="com.fosu.pojo.Exam">
+			<id property="exam_id" column="exam_id"/>
+			<result property="exam_score" column="exam_score"/>
+			<result property="exam_course" column="exam_course"/>
+			<result property="exam_CreateTime" column="exam_CreateTime"/>
+			<result property="exam_UpdateTime" column="exam_UpdateTime"/>
+		</association>
+		<association property="paper" javaType="com.fosu.pojo.Paper">
+			<id property="paper_id" column="paper_id"/>
+			<result property="paper_title" column="paper_title"/>
+			<result property="paper_total_score" column="paper_total_score"/>
+			<result property="paper_question_number" column="paper_question_number"/>
+			<result property="paper_time" column="paper_time"/>
+			<result property="paper_explain" column="paper_explain"/>
+		</association>
+	</collection>
+	
+</resultMap>
+
+	<!--搜索班级 id 得相关学生信息集合-->
+<select id="findClassStatus" parameterType="Integer" resultMap="ClassStatus">
+	SELECT 
+	`student_id`,
+	`student_name`,
+	`student_number`,
+	`exam_id`,
+	`exam_score`,
+	`exam_course`,
+	`exam_CreateTime`,
+	`exam_UpdateTime`,
+	`paper_id`,
+	`paper_title`,
+	`paper_total_score`,
+	`paper_question_number`,
+	`paper_time`,
+	`paper_explain`
+FROM grade,student,exam,paper
+WHERE grade.`grade_id`=student.`for_student_grade_id` AND student.`student_id`=exam.`for_exam_student_id` AND exam.`for_exam_paper_id`= paper.`paper_id`
+	AND `grade_id`=#{grade_id}
+</select>
+	<!--搜索同学名字 返回所有信息-->
+<select id="findOneStudent" parameterType="String" resultType="com.fosu.pojo.Student">
+	SELECT
+	*
+	FROM student
+	WHERE student.`student_name` = '朱敏琪'
+</select>
+	
+</mapper>

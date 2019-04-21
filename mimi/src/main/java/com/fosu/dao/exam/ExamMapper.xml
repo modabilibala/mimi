@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fosu.dao.exam.ExamMapper">
+
+<!--每周成绩查询-->
+<resultMap id="WeekExam" type="com.fosu.vo.exam.WeekExam">
+	<id property="exam_course" column="exam_course"/>
+	<collection property="time_exam" ofType="com.fosu.vo.exam.TimeExam">
+		<id property="exam_CreateTime" column="exam_CreateTime"/>
+		<result property="exam_score" column="exam_score"/>
+		<result property="exam_id" column="exam_id"/>
+	</collection>
+	
+</resultMap>
+
+<select id="findWeekExam" resultMap="WeekExam">
+	<![CDATA[
+	SELECT 
+	exam_id,	
+	exam_course,
+	exam_CreateTime,
+	exam_score,
+	DATE_FORMAT('1997-10-04 22:23:00', '%W %M %Y')
+	FROM exam
+	WHERE DATE(exam_CreateTime) >= #{exam_CreateTime}
+	AND for_exam_student_id = #{student_id}
+	order by exam_CreateTime asc 
+	]]> 
+</select>
+
+<select id="findChoiceAccuacyExam" parameterType="Integer" resultType="com.fosu.vo.exam.AccuacyChoiceExam">
+	<![CDATA[
+		SELECT
+	stu_choice.`choice_id`,
+	que_index.*,
+	SUM(choice_correction='1') /(SUM(choice_correction='1')+SUM(choice_correction='0')) AS accuacy
+	FROM stu_choice,student,question,que_choice,que_index
+	WHERE student_id = #{student_id}
+	AND student_id = for_cho_stu_id
+	AND for_cho_que_id = que_choice_id
+	AND for_que_choice_question_id = question_id
+	AND question_type='选择'
+	AND for_question_que_index = que_index_id
+	GROUP BY question_chapter , question_section
+	ORDER BY  question_chapter ,question_section
+	]]> 
+</select>
+
+<select id="findBlankAccuacyExam" parameterType="Integer" resultType="com.fosu.vo.exam.AccuacyBlankExam">
+		<![CDATA[
+	SELECT
+		stu_blank.`blank_id`,
+		que_index.*,
+		SUM(blank_correction) /SUM(blank_option) AS accuacy
+		FROM stu_blank,student,question,que_blank,que_index
+		WHERE student_id = #{student_id}
+		AND student_id = for_bla_stu_id
+		AND for_bla_que_id = que_blank_id
+		AND for_que_blank_question_id = question_id
+		AND question_type='填空'
+		AND for_question_que_index = que_index_id
+		GROUP BY question_chapter , question_section
+		ORDER BY  question_chapter ,question_section
+		]]> 
+</select>
+
+<select id="findShortAccuacyExam" parameterType="Integer" resultType="com.fosu.vo.exam.AccuacyShortExam">
+			<![CDATA[
+			SELECT
+		stu_short.`short_id`,
+		que_index.*,
+		SUM(short_correction) /SUM(short_score) AS accuacy
+		FROM stu_short,student,question,que_short,que_index
+		WHERE student_id = #{student_id}
+		AND student_id = for_sho_stu_id
+		AND for_sho_que_id = que_short_id
+		AND for_que_short_question_id = question_id  
+		AND question_type='简答'
+		AND for_question_que_index = que_index_id
+		GROUP BY question_chapter , question_section
+		ORDER BY  question_chapter ,question_section
+			]]> 
+</select>
+</mapper>

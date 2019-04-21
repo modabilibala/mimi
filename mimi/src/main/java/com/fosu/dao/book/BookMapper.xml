@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fosu.dao.book.BookMapper">
+
+
+<resultMap id="BookChoiceBase" type="com.fosu.vo.book.BookBaseChoice">
+	<id property="student_name" column="student_name"/>
+	<result property="question_type" column="question_type"/>
+	<collection property="choLink" ofType="com.fosu.vo.book.ChoiceLink">
+		<!-- 选择-->
+		<association property="cho" javaType="com.fosu.pojo.Stu_choice">
+		<id property="choice_id" column="choice_id"/>
+		<result property="choice_option" column="choice_option"/>
+		<result property="choice_answer" column="choice_answer"/>
+		<result property="choice_correction" column="choice_correction"/>
+		<result property="choice_CreateTime" column="choice_CreateTime"/>
+		<result property="choice_UpdateTime" column="choice_UpdateTime"/>			
+		</association>
+	
+	<!--题目-->
+	<association property="q_ch" javaType="com.fosu.pojo.QueChoice">
+		<id property="que_choice_id" column="que_choice_id"/>
+		<result property="for_que_choice_question_id" column="for_que_choice_question_id" />
+		<result property="que_choice_context" column="que_choice_context" />
+		<result property="que_choice_optionA" column="que_choice_optionA" />
+		<result property="que_choice_optionB" column="que_choice_optionB" />
+		<result property="que_choice_optionC" column="que_choice_optionC" />
+		<result property="que_choice_optionD" column="que_choice_optionD" />
+		<result property="que_choice_answer" column="que_choice_answer" />		
+		<result property="que_choice_detail" column="que_choice_detail" />
+	</association>
+	
+					<!-- 题目等级-->
+	<association property="q_le" javaType="com.fosu.pojo.QueLevel">
+		<id property="que_level_id" column="que_level_id"/>
+		<result property="que_level_level" column="que_level_level"/>	
+		<result property="que_level_score" column="que_level_score"/>
+		<result property="que_level_time" column="que_level_time"/>	
+	</association>
+			<!-- 题目章节-->
+	<association property="q_in" javaType="com.fosu.pojo.QueIndex">
+		<id property="que_index_id" column="que_index_id"/>
+		<result property="question_subject" column="question_subject"/>	
+		<result property="question_chapter" column="question_chapter"/>
+		<result property="question_section" column="question_section"/>	
+	</association>
+		<!-- 试卷-->
+	<association property="pap" javaType="com.fosu.pojo.Paper">
+		<id property="paper_id" column="paper_id"/>
+		<result property="paper_title" column="paper_title"/>
+		<result property="paper_total_score" column="paper_total_score"/>
+		<result property="paper_question_number" column="paper_question_number"/>
+		<result property="paper_time" column="paper_time"/>
+		<result property="paper_explain" column="paper_explain"/>
+		
+	</association>
+	</collection>
+
+</resultMap>
+	<!--查询book 错题本所有信息-->
+<select id="findBookChoice" parameterType="Integer" resultMap="BookChoiceBase">
+<![CDATA[
+	SELECT
+		student_name,
+		stu_choice.*,
+		question.`question_type`,
+		paper.*,
+		que_index.*,
+		que_level.*,
+		que_choice.*
+		FROM student,stu_choice,paper,question,que_index,que_level,que_choice
+		WHERE for_cho_stu_id = student_id
+		AND for_cho_que_id = que_choice_id
+		AND for_que_choice_question_id = question_id
+		AND for_question_que_index = que_index_id
+		AND for_question_que_level_id = que_level_id
+		AND for_question_paper_id = paper_id
+		AND student_id = #{student_id}
+	]]> 
+</select>
+
+</mapper>

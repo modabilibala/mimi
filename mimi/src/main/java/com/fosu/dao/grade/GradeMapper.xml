@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fosu.dao.grade.GradeMapper">
+<!-- 增加Grade 届 -->
+<insert id="insertGrade" parameterType="com.fosu.pojo.Grade" useGeneratedKeys="true" keyProperty="grade_id">
+	insert INTO `grade`(
+	`grade_period`,
+	`grade_specialty`,
+	`grade_class`
+	)
+	SELECT
+	#{grade_period},
+	#{grade_specialty}, 
+	#{grade_class}
+	FROM DUAL
+	WHERE NOT EXISTS(SELECT 1 FROM `grade` WHERE 
+	grade_period=#{grade_period} AND grade_specialty=#{grade_specialty} AND grade_class=#{grade_class})
+</insert>
+<!-- 查询年级单位返回id<list> -->
+<select id="findGrade" parameterType="com.fosu.vo.GradeQueryVo" resultType="Integer" >
+	select 	  `grade_id`
+			   
+	FROM grade
+	WHERE
+			  grade_period = #{gradeVo.grade_period} AND
+			  grade_specialty= #{gradeVo.grade_specialty} AND
+			  grade_class = #{gradeVo.grade_class}
+</select>
+<!-- 查询年级单位返回id<list>  基本-->
+<select id="findGrade_base" parameterType="com.fosu.pojo.Grade" resultType="Integer" >
+	select 	  `grade_id`		   
+	FROM grade
+	WHERE
+			  grade_period = #{grade_period} AND
+			  grade_specialty= #{grade_specialty} AND
+			  grade_class = #{grade_class}
+</select>
+
+</mapper>
